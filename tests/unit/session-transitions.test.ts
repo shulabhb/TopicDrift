@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   createSession,
+  declineCaptionConsent,
+  grantCaptionConsent,
   pauseSession,
   resumeSession,
   stopSession,
@@ -64,5 +66,46 @@ describe('session transitions', () => {
     expect(
       normalizeMeetingSession({ id: 'x', meetingKey: 'abc', status: 'active' }),
     ).not.toBeNull();
+  });
+
+  it('defaults caption consent to not-requested', () => {
+    const created = createSession('abc-defg-hij', 'Objective');
+    expect(created.ok).toBe(true);
+    if (created.ok) {
+      expect(created.value.captionConsent).toBe('not-requested');
+    }
+  });
+
+  it('grants and declines caption consent for active sessions', () => {
+    const granted = grantCaptionConsent(baseSession);
+    expect(granted.ok).toBe(true);
+    if (granted.ok) {
+      expect(granted.value.captionConsent).toBe('granted');
+    }
+
+    const declined = declineCaptionConsent(baseSession);
+    expect(declined.ok).toBe(true);
+    if (declined.ok) {
+      expect(declined.value.captionConsent).toBe('declined');
+    }
+  });
+
+  it('restores caption consent from persisted session shape', () => {
+    const restored = normalizeMeetingSession({
+      id: 'session-1',
+      meetingKey: 'abc-defg-hij',
+      objective: 'Objective',
+      status: 'active',
+      startedAt: 1,
+      updatedAt: 1,
+      captionConsent: 'granted',
+    });
+
+    expect(restored?.captionConsent).toBe('granted');
+  });
+
+  it('revokes caption consent when session stops', () => {
+    const stopped = stopSession({ ...baseSession, captionConsent: 'granted' }, 7000);
+    expect(stopped.captionConsent).toBe('revoked');
   });
 });

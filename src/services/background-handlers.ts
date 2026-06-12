@@ -17,9 +17,12 @@ import {
 import { getUserSettings, updateUserSettings } from '@/src/services/storage';
 import {
   createSession,
+  declineCaptionConsent,
   endSession,
+  grantCaptionConsent,
   pauseSession,
   resumeSession,
+  revokeCaptionConsent,
   stopSession,
   updateSessionObjective,
 } from '@/src/services/session-transitions';
@@ -123,6 +126,67 @@ export async function handleExtensionMessage(
       }
 
       return undefined;
+    }
+
+    case MESSAGE_TYPES.CAPTION_STATE_CHANGED: {
+      const tabId = message.payload.tabId ?? senderTabId;
+      if (!tabId) {
+        return undefined;
+      }
+
+      setTabRuntimeState(tabId, {
+        captionTrackingState: message.payload.captionTrackingState,
+        captionsAvailable: message.payload.captionsAvailable,
+        meetingKey: message.payload.meetingKey,
+      });
+
+      return undefined;
+    }
+
+    case MESSAGE_TYPES.GRANT_CAPTION_CONSENT:
+    case MESSAGE_TYPES.DECLINE_CAPTION_CONSENT: {
+      const session = await getSessionForMeeting(message.payload.meetingKey);
+      if (!session) {
+        return { type: MESSAGE_TYPES.ACTION_RESULT, payload: err('session-not-found') };
+      }
+
+      const transition =
+        message.type === MESSAGE_TYPES.GRANT_CAPTION_CONSENT
+          ? grantCaptionConsent(session)
+          : declineCaptionConsent(session);
+
+      if (!transition.ok) {
+        return { type: MESSAGE_TYPES.ACTION_RESULT, payload: transition };
+      }
+
+      const saved = await saveSession(transition.value);
+      if (!saved.ok) {
+        return { type: MESSAGE_TYPES.ACTION_RESULT, payload: saved };
+      }
+
+      const tabId = (await getActiveTabId()) ?? senderTabId;
+      await broadcastSessionChange(message.payload.meetingKey, tabId);
+      return { type: MESSAGE_TYPES.ACTION_RESULT, payload: ok(saved.value) };
+    }
+
+    case MESSAGE_TYPES.REVOKE_CAPTION_CONSENT: {
+      const session = await getSessionForMeeting(message.payload.meetingKey);
+      if (!session) {
+        return { type: MESSAGE_TYPES.ACTION_RESULT, payload: err('session-not-found') };
+      }
+
+      const revoked = revokeCaptionConsent(session);
+      if (!revoked.ok) {
+        return { type: MESSAGE_TYPES.ACTION_RESULT, payload: revoked };
+      }
+
+      const saved = await saveSession(revoked.value);
+      if (!saved.ok) {
+        return { type: MESSAGE_TYPES.ACTION_RESULT, payload: saved };
+      }
+
+      await broadcastSessionChange(message.payload.meetingKey, senderTabId);
+      return { type: MESSAGE_TYPES.ACTION_RESULT, payload: ok(saved.value) };
     }
 
     case MESSAGE_TYPES.GET_POPUP_STATE: {

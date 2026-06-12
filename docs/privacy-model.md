@@ -15,7 +15,8 @@
 - Meet page lifecycle state via adapter-local DOM and URL heuristics
 - User settings values for extension behavior
 - User-entered meeting objectives after explicit submission
-- **Not processed in this phase:** captions, transcript text, audio
+- Visible Google Meet captions after explicit caption consent (in-memory only)
+- **Not processed:** audio, microphone streams, chat messages, participant lists outside caption context
 
 ## What is stored
 
@@ -24,6 +25,7 @@
 - `userSettings` in `browser.storage.local`
 - `meetingSessions` keyed by normalized `meetingKey` (Meet room code only)
 - `offerSuppression` keyed by `meetingKey` for per-meeting offer decline/dismiss
+- `captionConsent` on each session (`not-requested`, `declined`, `granted`, `revoked`)
 
 ### Meeting key approach
 
@@ -41,7 +43,11 @@ Not stored:
 - Full Meet URLs
 - URL query parameters
 - Participant identities
-- Transcript/caption text
+- Raw transcript/caption text (segments remain in memory only during active observation)
+
+### In-memory transcript handling
+
+Normalized caption segments exist only in the content-script runtime while observation is active. They are cleared on pause, stop, meeting end, room navigation, or content-script unload. No transcript segments are written to `browser.storage.local` by default.
 
 ### Retention behavior
 
@@ -83,7 +89,8 @@ Use `src/utils/logger.ts`:
 2. Visiting Meet does **not** start caption observation
 3. Automatic offers appear only after stable in-meeting detection and respect `autoOfferTracking`
 4. Objective capture requires explicit user action (`Set objective` / popup start)
-5. Conversation analysis is not active in this phase
+5. Caption observation requires a **separate** explicit consent step (`Enable caption tracking`)
+6. Topic drift analysis is not active in this phase
 
 ## Data deletion behavior
 
@@ -93,16 +100,16 @@ Use `src/utils/logger.ts`:
 
 ## Chrome permission rationale
 
-| Permission                         | Why needed                                                       |
-| ---------------------------------- | ---------------------------------------------------------------- |
-| `storage`                          | Persist settings, sessions, and offer suppression locally        |
-| `https://meet.google.com/*` (host) | Inject isolated content script on Google Meet pages              |
+| Permission                         | Why needed                                                |
+| ---------------------------------- | --------------------------------------------------------- |
+| `storage`                          | Persist settings, sessions, and offer suppression locally |
+| `https://meet.google.com/*` (host) | Inject isolated content script on Google Meet pages       |
 
 ### Removed permission
 
-| Permission   | Why removed                                                                 |
-| ------------ | --------------------------------------------------------------------------- |
-| `activeTab`  | Popup state now comes from content-script lifecycle cache via background messaging; host permission covers Meet tabs |
+| Permission  | Why removed                                                                                                          |
+| ----------- | -------------------------------------------------------------------------------------------------------------------- |
+| `activeTab` | Popup state now comes from content-script lifecycle cache via background messaging; host permission covers Meet tabs |
 
 ### Explicitly not requested (v1)
 
@@ -114,13 +121,13 @@ Use `src/utils/logger.ts`:
 
 ## Threat considerations
 
-| Threat                       | Mitigation                                          |
-| ---------------------------- | --------------------------------------------------- |
-| Accidental data exfiltration | No network code paths for meeting payloads          |
-| Overbroad permissions        | Manifest limited to `storage` + Meet host             |
-| Host CSS/script interference | Shadow DOM isolation                                |
-| Sensitive logs               | Logger redaction and production debug suppression   |
-| Misleading UX                | Widget states objective only; no analysis claims    |
+| Threat                       | Mitigation                                                      |
+| ---------------------------- | --------------------------------------------------------------- |
+| Accidental data exfiltration | No network code paths for meeting payloads                      |
+| Overbroad permissions        | Manifest limited to `storage` + Meet host                       |
+| Host CSS/script interference | Shadow DOM isolation                                            |
+| Sensitive logs               | Logger redaction and production debug suppression               |
+| Misleading UX                | Widget reports caption state honestly; no drift/analysis claims |
 
 ## Privacy acceptance checklist
 
@@ -132,5 +139,5 @@ Use `src/utils/logger.ts`:
 - [x] No remote JavaScript
 - [x] Explicit opt-in before objective capture
 - [x] Session retention honors user settings on meeting end
-- [ ] Explicit opt-in before caption observation (future)
+- [x] Explicit opt-in before caption observation
 - [ ] Manual privacy review before Chrome Web Store submission (future)

@@ -173,7 +173,7 @@ Automatic offers must be helpful without nagging users who declined tracking for
 ## ADR-0009 — Explicit opt-in before any analysis
 
 - **Date:** 2025-06-12
-- **Status:** Accepted
+- **Status:** Accepted (updated 2025-06-12)
 
 ### Context
 
@@ -181,10 +181,31 @@ Privacy requirements mandate consent before reading captions or scoring conversa
 
 ### Decision
 
-This phase stops at objective capture and session state. UI copy must state that conversation analysis is not active. Caption observation and drift scoring remain unimplemented until a later milestone after separate consent and technical work.
+Objective capture and session state require explicit user action. Caption observation requires a **separate** consent step after an active session exists. Drift scoring remains unimplemented. UI copy must state that topic drift analysis is not active.
 
 ### Consequences
 
-- No transcript collection in this release
-- Widget shows objective status only
-- Next milestone is caption observation, not drift warnings
+- Caption text is ingested in memory only after `captionConsent === 'granted'`
+- Widget and popup report caption-tracking state without drift claims
+- Next milestone is drift engine wiring, not additional consent work
+
+---
+
+## ADR-0010 — DOM captions over audio capture
+
+- **Date:** 2025-06-12
+- **Status:** Accepted
+
+### Context
+
+Audio capture would require additional permissions (`microphone`, `tabCapture`) and increase privacy risk.
+
+### Decision
+
+Read visible Google Meet captions from the DOM using the existing Meet host permission and content script. Do not request microphone or tab audio permissions in v1.
+
+### Consequences
+
+- Users must enable Meet captions manually
+- Caption selectors remain adapter-local and may require ongoing maintenance
+- Transcript ingestion stays in the content script with in-memory segments only

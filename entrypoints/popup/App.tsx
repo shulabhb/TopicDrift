@@ -1,12 +1,32 @@
 import { useEffect, useState } from 'react';
 import {
+  declineCaptionConsentFromPopup,
   fetchPopupState,
+  grantCaptionConsentFromPopup,
   openMeetingControlsFromPopup,
   resumeSessionFromPopup,
   startObjectiveSetupFromPopup,
 } from '@/src/services/messaging';
 import type { PopupState } from '@/src/types/meeting';
 import './App.css';
+
+function formatCaptionTrackingState(state: PopupState['captionTrackingState']): string {
+  switch (state) {
+    case 'not-consented':
+    case 'consent-declined':
+      return 'Caption permission needed';
+    case 'waiting-for-captions':
+      return 'Waiting for captions';
+    case 'captions-detected':
+      return 'Captions detected';
+    case 'paused':
+      return 'Caption tracking paused';
+    case 'stopped':
+      return 'Caption tracking stopped';
+    default:
+      return 'Caption tracking not started';
+  }
+}
 
 function formatPopupStatus(state: PopupState | null): string {
   if (!state) {
@@ -61,6 +81,15 @@ export default function App() {
     popupState?.meetState === 'session-active' ||
     popupState?.meetState === 'session-paused';
 
+  const showCaptionConsent =
+    (popupState?.meetState === 'session-active' ||
+      popupState?.meetState === 'session-paused') &&
+    popupState.captionConsent !== 'granted';
+
+  const showCaptionDecline =
+    popupState?.captionConsent === 'not-requested' ||
+    popupState?.captionConsent === 'declined';
+
   const runAction = async (action: () => Promise<unknown>, success: string) => {
     setActionMessage(null);
     const result = await action();
@@ -98,6 +127,11 @@ export default function App() {
         </p>
         {popupState?.objective ? (
           <p className="popup__hint">Objective saved for this meeting.</p>
+        ) : null}
+        {popupState?.captionTrackingState ? (
+          <p className="popup__hint" role="status">
+            {formatCaptionTrackingState(popupState.captionTrackingState)}
+          </p>
         ) : null}
       </section>
 
@@ -151,14 +185,47 @@ export default function App() {
           </button>
         ) : null}
 
-        {!showSetObjective && !showResume && !showOpenControls ? (
+        {showCaptionConsent && showCaptionDecline && popupState.meetingKey ? (
+          <>
+            <button
+              type="button"
+              className="popup__button popup__button--enabled"
+              onClick={() =>
+                void runAction(
+                  () => grantCaptionConsentFromPopup(popupState.meetingKey!),
+                  'Caption tracking enabled.',
+                )
+              }
+            >
+              Enable caption tracking
+            </button>
+            <button
+              type="button"
+              className="popup__button"
+              onClick={() =>
+                void runAction(
+                  () => declineCaptionConsentFromPopup(popupState.meetingKey!),
+                  'Caption tracking declined for now.',
+                )
+              }
+            >
+              Not now
+            </button>
+          </>
+        ) : null}
+
+        {!showSetObjective &&
+        !showResume &&
+        !showOpenControls &&
+        !showCaptionConsent ? (
           <p className="popup__hint">
             Conversation analysis is not active yet. Join a Google Meet call to set an
             objective.
           </p>
         ) : (
           <p className="popup__hint">
-            TopicDrift stores your objective locally. Caption analysis has not started.
+            Topic drift analysis is not active yet. Captions are processed locally in
+            memory only.
           </p>
         )}
 

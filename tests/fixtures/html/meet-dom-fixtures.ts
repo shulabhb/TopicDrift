@@ -28,3 +28,28 @@ export const FIXTURE_LEAVING = `
     <p>You left the meeting</p>
   </div>
 `;
+
+export const FIXTURE_CAPTIONS = `
+  <div role="main" data-meet-app>
+    <footer role="toolbar" data-call-toolbar aria-label="Call controls">
+      <button aria-label="Leave call">Leave</button>
+    </footer>
+    <div data-participant-id="participant-1"></div>
+    <div data-meeting-timer role="timer" aria-label="Meeting time">00:01</div>
+    <div role="region" data-caption-window aria-label="Captions">
+      <div data-caption-text aria-live="polite">
+        <span data-caption-speaker>Speaker A</span>
+        Hello team
+      </div>
+    </div>
+  </div>
+`;
+
+export const FIXTURE_CAPTIONS_DYNAMIC = `
+  <div role="main" data-meet-app>
+    <div role="region" data-caption-window aria-label="Captions" id="caption-root"></div>
+    <div role="log" aria-label="Chat messages" data-chat-container>
+      <div>Do not collect chat</div>
+    </div>
+  </div>
+`;

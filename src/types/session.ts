@@ -1,5 +1,8 @@
 import { err, ok, type Result } from '@/src/utils/result';
 
+import type { CaptionConsentStatus } from './caption';
+import { isCaptionConsentStatus } from './caption';
+
 export type MeetingSessionStatus =
   | 'setting-up'
   | 'active'
@@ -27,6 +30,7 @@ export interface MeetingSession {
   updatedAt: number;
   pausedAt?: number;
   endedAt?: number;
+  captionConsent?: CaptionConsentStatus;
 }
 
 export interface OfferSuppression {
@@ -91,6 +95,9 @@ export function normalizeMeetingSession(
     updatedAt,
     pausedAt: typeof input.pausedAt === 'number' ? input.pausedAt : undefined,
     endedAt: typeof input.endedAt === 'number' ? input.endedAt : undefined,
+    captionConsent: isCaptionConsentStatus(input.captionConsent)
+      ? input.captionConsent
+      : 'not-requested',
   };
 }
 

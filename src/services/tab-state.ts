@@ -21,6 +21,9 @@ export function setTabRuntimeState(
     meetingKey: partial.meetingKey ?? existing?.meetingKey,
     contentScriptReady:
       partial.contentScriptReady ?? existing?.contentScriptReady ?? false,
+    captionTrackingState:
+      partial.captionTrackingState ?? existing?.captionTrackingState,
+    captionsAvailable: partial.captionsAvailable ?? existing?.captionsAvailable,
     updatedAt: partial.updatedAt ?? Date.now(),
   };
 
@@ -69,6 +72,8 @@ export function buildPopupState(
     meetingKey: tabState.meetingKey,
     objective: session?.objective,
     sessionStatus: session?.status,
+    captionTrackingState: tabState.captionTrackingState,
+    captionConsent: session?.captionConsent,
     contentScriptReady: tabState.contentScriptReady,
   };
 }

@@ -81,6 +81,22 @@ export async function resumeSessionFromPopup(meetingKey: string) {
   return response?.type === MESSAGE_TYPES.ACTION_RESULT ? response.payload : undefined;
 }
 
+export async function grantCaptionConsentFromPopup(meetingKey: string) {
+  const response = await sendMessage({
+    type: MESSAGE_TYPES.GRANT_CAPTION_CONSENT,
+    payload: { meetingKey },
+  });
+  return response?.type === MESSAGE_TYPES.ACTION_RESULT ? response.payload : undefined;
+}
+
+export async function declineCaptionConsentFromPopup(meetingKey: string) {
+  const response = await sendMessage({
+    type: MESSAGE_TYPES.DECLINE_CAPTION_CONSENT,
+    payload: { meetingKey },
+  });
+  return response?.type === MESSAGE_TYPES.ACTION_RESULT ? response.payload : undefined;
+}
+
 export type MessageHandler = (
   message: ExtensionMessage,
   sender: Browser.runtime.MessageSender,

@@ -156,3 +156,27 @@
   white-space: nowrap;
   border: 0;
 }
+
+.td-dev-panel {
+  margin-top: 8px;
+}
+
+.td-dev-list {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 0.72rem;
+  color: #475569;
+}
+
+.td-dev-toggle {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.72rem;
+  color: #475569;
+}
+
+.td-caption-consent {
+  margin: 10px 0;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+}

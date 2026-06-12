@@ -6,23 +6,31 @@ TopicDrift is a privacy-first Chrome extension that helps you notice when a brow
 
 ## Current project status
 
-**Objective/session milestone** — Google Meet lifecycle detection, tracking offer, objective capture, and recoverable local sessions.
+**Caption ingestion milestone** — Google Meet lifecycle detection, session/objective flow, explicit caption consent, and in-memory local caption ingestion.
 
 Implemented today:
 
-- Meet lifecycle detection (`landing`, `prejoin`, `in-meeting`, `leaving`, `ended`)
-- Automatic tracking offer with per-meeting suppression
-- Explicit objective form and local session persistence
-- In-meeting widget with pause/resume/edit/stop controls
-- Popup actions for setup, resume, and open-controls
+- Meet lifecycle detection (`landing`, `prejoin`, `in-meeting`, `leaving`, `ended`) with hardened multi-signal heuristics
+- Development-only lifecycle diagnostics (signal summary, in-meeting confidence; no URLs or meeting codes)
+- Automatic tracking offer with per-meeting suppression (stable `in-meeting` only)
+- Explicit objective form and recoverable local session persistence
+- Separate explicit caption-tracking consent (not automatic with session start)
+- Google Meet caption observer (`MutationObserver`) with adapter-local selectors
+- In-memory transcript normalization and deduplication (no raw transcript persistence)
+- In-meeting widget and popup caption-tracking states
+- Development-only transcript monitor counters (no raw caption text by default)
 - Typed background/content messaging and session storage
 - DOM fixtures and expanded unit test coverage
 
 Not implemented yet:
 
-- Caption observation / scraping
 - Topic drift detection and warnings
+- TF-IDF / similarity scoring / drift state machine activation
 - Post-meeting summaries
+
+## Why captions instead of microphone access
+
+TopicDrift reads **visible Google Meet captions** from the page DOM after explicit user consent. This avoids `microphone`, `tabCapture`, or audio permissions, keeps processing local to the browser, and matches the privacy posture of v1.
 
 ## v1 scope (target)
 
@@ -32,6 +40,7 @@ Google Meet in Chrome with live captions enabled; local analysis; private warnin
 
 - No backend, accounts, or cloud AI in v1
 - Minimal permissions: `storage` and `https://meet.google.com/*`
+- Caption consent stored locally; transcript segments kept in memory only
 - No raw transcript persistence by default
 - Logger redacts sensitive meeting fields
 
@@ -60,7 +69,7 @@ WXT prints the path to the development build (typically `.output/chrome-mv3-dev`
 3. Enable **Developer mode**.
 4. Click **Load unpacked**.
 5. Select the WXT output directory shown in the terminal.
-6. Open `https://meet.google.com/` to verify the content script shell (dev badge in development builds only).
+6. Open `https://meet.google.com/` to verify lifecycle diagnostics (development builds only).
 
 ## Available scripts
 

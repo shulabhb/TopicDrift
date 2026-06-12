@@ -25,24 +25,24 @@ A user joins a Google Meet with live captions enabled, sets a meeting objective,
 9. After the meeting, TopicDrift may generate a local summary if the user enabled saving summaries.
 10. Temporary session data is cleared according to user settings.
 
-**Current status:** Steps 1–4 and session management are implemented. Steps 5–10 (captions, analysis, drift warnings, summaries) are not implemented.
+**Current status:** Steps 1–5 and session/caption ingestion are implemented. Steps 6–10 (drift analysis, drift warnings, summaries) are not implemented.
 
 ## Functional requirements
 
-| ID    | Requirement                                             | Foundation status                    |
-| ----- | ------------------------------------------------------- | ------------------------------------ |
-| FR-1  | Detect supported meeting pages (Google Meet)            | Implemented — lifecycle states |
-| FR-2  | Offer tracking after detection                          | Implemented                    |
-| FR-3  | Capture meeting objective with user consent             | Implemented                    |
-| FR-4  | Read live captions after explicit activation            | Not implemented                      |
-| FR-5  | Analyze transcript locally                              | Stub only                            |
-| FR-6  | Detect sustained drift vs isolated tangents             | Stub only                            |
-| FR-7  | Show private drift warnings                             | Not implemented                      |
+| ID    | Requirement                                             | Foundation status                               |
+| ----- | ------------------------------------------------------- | ----------------------------------------------- |
+| FR-1  | Detect supported meeting pages (Google Meet)            | Implemented — lifecycle states                  |
+| FR-2  | Offer tracking after detection                          | Implemented                                     |
+| FR-3  | Capture meeting objective with user consent             | Implemented                                     |
+| FR-4  | Read live captions after explicit activation            | Implemented — consent-gated DOM observer        |
+| FR-5  | Analyze transcript locally                              | Stub only (ingestion only; no drift scoring)    |
+| FR-6  | Detect sustained drift vs isolated tangents             | Stub only                                       |
+| FR-7  | Show private drift warnings                             | Not implemented                                 |
 | FR-8  | Allow dismiss / detour / objective update / pause       | Partial — pause/edit/stop; no drift detours yet |
-| FR-9  | Optional local post-meeting summary                     | Not implemented                      |
-| FR-10 | Persist user settings locally                           | Implemented                          |
-| FR-11 | Popup shows support state without false analysis claims | Implemented                          |
-| FR-12 | Options page for privacy-relevant preferences           | Implemented                          |
+| FR-9  | Optional local post-meeting summary                     | Not implemented                                 |
+| FR-10 | Persist user settings locally                           | Implemented                                     |
+| FR-11 | Popup shows support state without false analysis claims | Implemented                                     |
+| FR-12 | Options page for privacy-relevant preferences           | Implemented                                     |
 
 ## Non-functional requirements
 
@@ -72,8 +72,10 @@ A user joins a Google Meet with live captions enabled, sets a meeting objective,
 | Settings load failure | Options shows error; defaults are not falsely shown as saved |
 | Settings save failure | Options shows error status; previous values remain           |
 | No active tab         | Popup reports no active tab                                  |
-| Meet without captions | Future: explain captions must be enabled in Meet             |
-| Tracking not started  | Disabled control or hint that analysis has not started       |
+| Meet without captions | Widget/popup show “Turn on Google Meet captions…” guidance   |
+| Caption not consented | Widget/popup show caption permission needed                  |
+| Captions detected     | Widget/popup show captions detected; no analysis claims      |
+| Tracking paused       | Caption observation stops; paused state shown                |
 
 ## Accessibility expectations
 
@@ -97,5 +99,5 @@ A usable v1 means a user can reliably opt into tracking on Google Meet, set an o
 - [x] Options persist settings locally with validation
 - [x] Content script mounts isolated shell on Meet pages
 - [x] CI runs format, lint, typecheck, tests, and build
-- [ ] Caption observation after explicit consent (future milestone)
+- [x] Caption observation after explicit consent
 - [ ] Sustained drift detection with user controls (future milestone)

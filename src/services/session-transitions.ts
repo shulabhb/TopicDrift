@@ -1,4 +1,5 @@
 import type { MeetingSession, MeetingSessionStatus } from '@/src/types/session';
+import type { CaptionConsentStatus } from '@/src/types/caption';
 import { validateObjective, normalizeObjectiveInput } from '@/src/types/session';
 import { err, ok, type Result } from '@/src/utils/result';
 
@@ -27,6 +28,7 @@ export function createSession(
     status: 'active',
     startedAt: now,
     updatedAt: now,
+    captionConsent: 'not-requested',
   });
 }
 
@@ -89,6 +91,8 @@ export function stopSession(session: MeetingSession, now = Date.now()): MeetingS
     status: 'stopped',
     endedAt: now,
     updatedAt: now,
+    captionConsent:
+      session.captionConsent === 'granted' ? 'revoked' : session.captionConsent,
   };
 }
 
@@ -118,4 +122,49 @@ export function shouldReplaceSession(
 
 export function isEditableSessionStatus(status: MeetingSessionStatus): boolean {
   return status === 'setting-up' || status === 'active' || status === 'paused';
+}
+
+export function grantCaptionConsent(
+  session: MeetingSession,
+  now = Date.now(),
+): Result<MeetingSession, string> {
+  if (session.status !== 'active' && session.status !== 'paused') {
+    return err('session-not-active');
+  }
+
+  return ok({
+    ...session,
+    captionConsent: 'granted' satisfies CaptionConsentStatus,
+    updatedAt: now,
+  });
+}
+
+export function declineCaptionConsent(
+  session: MeetingSession,
+  now = Date.now(),
+): Result<MeetingSession, string> {
+  if (session.status !== 'active' && session.status !== 'paused') {
+    return err('session-not-active');
+  }
+
+  return ok({
+    ...session,
+    captionConsent: 'declined' satisfies CaptionConsentStatus,
+    updatedAt: now,
+  });
+}
+
+export function revokeCaptionConsent(
+  session: MeetingSession,
+  now = Date.now(),
+): Result<MeetingSession, string> {
+  if (session.status !== 'active' && session.status !== 'paused') {
+    return err('session-not-active');
+  }
+
+  return ok({
+    ...session,
+    captionConsent: 'revoked' satisfies CaptionConsentStatus,
+    updatedAt: now,
+  });
 }

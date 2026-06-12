@@ -56,14 +56,20 @@ export interface TabRuntimeState {
   pageState: MeetingPageState;
   meetingKey?: string;
   contentScriptReady: boolean;
+  captionTrackingState?: import('./caption').CaptionTrackingState;
+  captionsAvailable?: boolean;
   updatedAt: number;
 }
+
+import type { CaptionTrackingState } from './caption';
 
 export interface PopupState {
   meetState: PopupMeetState;
   meetingKey?: string;
   objective?: string;
   sessionStatus?: import('./session').MeetingSessionStatus;
+  captionTrackingState?: CaptionTrackingState;
+  captionConsent?: import('./session').MeetingSession['captionConsent'];
   contentScriptReady: boolean;
 }
 

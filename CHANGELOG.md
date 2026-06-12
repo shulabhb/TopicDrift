@@ -14,19 +14,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic tracking offer with per-meeting suppression (`Not now` / dismiss)
 - Explicit meeting objective form (max 500 characters)
 - Local session persistence with pause, resume, edit, and stop actions
-- In-meeting tracking widget with honest non-analysis status copy
-- Popup integration for setup, resume, and open-controls actions
-- Typed background/content messaging for meeting and session state
-- DOM fixtures and unit tests for detector, sessions, offers, and UI
+- Separate explicit caption-tracking consent (widget and popup)
+- Google Meet caption observer with adapter-local selectors and `MutationObserver`
+- In-memory transcript ingestion pipeline (normalize, dedupe, partial-update merge)
+- Development-only lifecycle diagnostics and transcript monitor counters
+- In-meeting widget caption states (permission needed, waiting, detected, paused)
+- Popup caption-tracking status and enable/decline actions
+- Typed background/content messaging for meeting, session, and caption state
+- DOM fixtures and unit tests for lifecycle diagnostics, caption consent, observer, and ingest
 
 ### Changed
 
 - Removed `activeTab` permission; popup state now comes from content-script/background cache
-- Replaced placeholder popup tracking button with real Meet/session states
+- Hardened in-meeting lifecycle heuristics with multi-signal confidence
+- Replaced placeholder popup tracking button with real Meet/session/caption states
+- Fixed Prettier formatting for architecture/privacy/product docs (CI)
 
 ### Notes
 
-- Caption observation and drift analysis remain **not implemented**.
+- Topic drift detection, scoring, and warnings remain **not implemented**.
 
 ## [0.1.0] - 2025-06-12
 

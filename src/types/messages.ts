@@ -3,6 +3,7 @@ import type { UserSettings } from './settings';
 import type { PageSupportState } from './meeting';
 import type { DriftResult } from './drift';
 import type { MeetingSession, MeetingSessionStatus } from './session';
+import type { CaptionTrackingState } from './caption';
 import type {
   MeetingPageState,
   MeetingStateObservation,
@@ -35,6 +36,10 @@ export const MESSAGE_TYPES = {
   SUPPRESS_OFFER: 'SUPPRESS_OFFER',
   START_OBJECTIVE_SETUP: 'START_OBJECTIVE_SETUP',
   OPEN_MEETING_CONTROLS: 'OPEN_MEETING_CONTROLS',
+  GRANT_CAPTION_CONSENT: 'GRANT_CAPTION_CONSENT',
+  DECLINE_CAPTION_CONSENT: 'DECLINE_CAPTION_CONSENT',
+  REVOKE_CAPTION_CONSENT: 'REVOKE_CAPTION_CONSENT',
+  CAPTION_STATE_CHANGED: 'CAPTION_STATE_CHANGED',
   CONTENT_ACTION: 'CONTENT_ACTION',
   ACTION_RESULT: 'ACTION_RESULT',
 } as const;
@@ -160,7 +165,9 @@ export interface SuppressOfferMessage extends BaseMessage {
 export type ContentAction =
   | { action: 'start-objective-setup' }
   | { action: 'open-controls' }
-  | { action: 'resume-session' };
+  | { action: 'resume-session' }
+  | { action: 'grant-caption-consent' }
+  | { action: 'decline-caption-consent' };
 
 export interface StartObjectiveSetupMessage extends BaseMessage {
   type: typeof MESSAGE_TYPES.START_OBJECTIVE_SETUP;
@@ -168,6 +175,31 @@ export interface StartObjectiveSetupMessage extends BaseMessage {
 
 export interface OpenMeetingControlsMessage extends BaseMessage {
   type: typeof MESSAGE_TYPES.OPEN_MEETING_CONTROLS;
+}
+
+export interface GrantCaptionConsentMessage extends BaseMessage {
+  type: typeof MESSAGE_TYPES.GRANT_CAPTION_CONSENT;
+  payload: { meetingKey: string };
+}
+
+export interface DeclineCaptionConsentMessage extends BaseMessage {
+  type: typeof MESSAGE_TYPES.DECLINE_CAPTION_CONSENT;
+  payload: { meetingKey: string };
+}
+
+export interface RevokeCaptionConsentMessage extends BaseMessage {
+  type: typeof MESSAGE_TYPES.REVOKE_CAPTION_CONSENT;
+  payload: { meetingKey: string };
+}
+
+export interface CaptionStateChangedMessage extends BaseMessage {
+  type: typeof MESSAGE_TYPES.CAPTION_STATE_CHANGED;
+  payload: {
+    meetingKey: string;
+    tabId?: number;
+    captionTrackingState: CaptionTrackingState;
+    captionsAvailable: boolean;
+  };
 }
 
 export interface ContentActionMessage extends BaseMessage {
@@ -205,6 +237,10 @@ export type ExtensionMessage =
   | SuppressOfferMessage
   | StartObjectiveSetupMessage
   | OpenMeetingControlsMessage
+  | GrantCaptionConsentMessage
+  | DeclineCaptionConsentMessage
+  | RevokeCaptionConsentMessage
+  | CaptionStateChangedMessage
   | ContentActionMessage
   | ActionResultMessage;
 
