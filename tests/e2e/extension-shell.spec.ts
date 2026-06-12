@@ -16,7 +16,7 @@ test.describe('extension shell build artifacts', () => {
 
     expect(manifest.name).toBe('TopicDrift');
     expect(manifest.manifest_version).toBe(3);
-    expect(manifest.permissions?.sort()).toEqual(['activeTab', 'storage']);
+    expect(manifest.permissions?.sort()).toEqual(['storage']);
     expect(manifest.host_permissions).toEqual(['https://meet.google.com/*']);
     expect(manifest.content_scripts?.[0]?.matches).toEqual([
       'https://meet.google.com/*',

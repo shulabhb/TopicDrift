@@ -6,23 +6,22 @@ TopicDrift is a privacy-first Chrome extension that helps you notice when a brow
 
 ## Current project status
 
-**Foundation milestone (v0.1.0)** — architecture, documentation, quality tooling, and a minimal working extension shell.
+**Objective/session milestone** — Google Meet lifecycle detection, tracking offer, objective capture, and recoverable local sessions.
 
 Implemented today:
 
-- WXT + React + TypeScript Manifest V3 project
-- Background message routing and installation handling
-- Popup with honest support state and placeholder tracking control
-- Options page with persisted local settings
-- Google Meet content script with isolated shadow-root shell
-- Typed domain models, adapter/analysis boundaries (stubs)
-- Vitest unit tests, Playwright manifest smoke test, GitHub Actions CI
+- Meet lifecycle detection (`landing`, `prejoin`, `in-meeting`, `leaving`, `ended`)
+- Automatic tracking offer with per-meeting suppression
+- Explicit objective form and local session persistence
+- In-meeting widget with pause/resume/edit/stop controls
+- Popup actions for setup, resume, and open-controls
+- Typed background/content messaging and session storage
+- DOM fixtures and expanded unit test coverage
 
 Not implemented yet:
 
-- Caption scraping / observation
-- User opt-in tracking flow
-- Drift detection and warnings
+- Caption observation / scraping
+- Topic drift detection and warnings
 - Post-meeting summaries
 
 ## v1 scope (target)
@@ -32,7 +31,7 @@ Google Meet in Chrome with live captions enabled; local analysis; private warnin
 ## Privacy posture
 
 - No backend, accounts, or cloud AI in v1
-- Minimal permissions: `storage`, `activeTab`, and `https://meet.google.com/*`
+- Minimal permissions: `storage` and `https://meet.google.com/*`
 - No raw transcript persistence by default
 - Logger redacts sensitive meeting fields
 

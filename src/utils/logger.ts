@@ -9,6 +9,9 @@ const SENSITIVE_KEYS = new Set([
   'captions',
   'objective',
   'speaker',
+  'url',
+  'meetingUrl',
+  'meetingKey',
 ]);
 
 function sanitizeMeta(

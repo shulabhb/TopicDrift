@@ -4,15 +4,21 @@ TopicDrift is a privacy-first Chrome extension that helps users keep online meet
 
 ## Current v1 scope
 
-Foundation and shell only unless a task explicitly extends it:
+Implemented:
 
 - WXT + React + TypeScript Manifest V3 extension
-- Google Meet host permission and content script mount (no caption scraping yet)
-- Popup and options UI shell
-- Typed settings persisted in `browser.storage.local`
-- Typed message routing in the background service worker
-- Adapter and analysis module boundaries with documented placeholders
-- Unit tests, CI, and production build pipeline
+- Google Meet lifecycle detection and content-script UI orchestration
+- Tracking offer, objective capture, and local session persistence
+- Popup and options surfaces with honest non-analysis copy
+- Typed settings, sessions, and message routing
+- Adapter/analysis/service boundaries (analysis remains stubbed)
+- Unit tests, Playwright manifest smoke test, GitHub Actions CI
+
+Not implemented:
+
+- Caption observation
+- Topic drift detection and warnings
+- Post-meeting summaries
 
 ## Explicit non-goals (v1)
 

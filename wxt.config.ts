@@ -7,7 +7,7 @@ export default defineConfig({
     name: 'TopicDrift',
     description: 'Private, local topic-alignment tracking for online meetings.',
     version: '0.1.0',
-    permissions: ['storage', 'activeTab'],
+    permissions: ['storage'],
     host_permissions: ['https://meet.google.com/*'],
     icons: {
       16: 'icons/icon-16.png',

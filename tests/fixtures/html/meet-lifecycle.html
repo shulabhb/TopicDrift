@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>TopicDrift Meet Fixture Harness</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 24px;
+      }
+      button {
+        margin-right: 8px;
+        margin-bottom: 8px;
+      }
+      #stage {
+        border: 1px solid #cbd5e1;
+        padding: 16px;
+        min-height: 180px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>TopicDrift lifecycle fixture harness</h1>
+    <p>
+      Use this page with unit tests and local adapter evaluation. It is not loaded by
+      the production extension.
+    </p>
+    <div>
+      <button data-fixture="landing">Landing</button>
+      <button data-fixture="prejoin">Prejoin</button>
+      <button data-fixture="in-meeting">In meeting</button>
+      <button data-fixture="leaving">Leaving</button>
+    </div>
+    <div id="stage" data-meet-app></div>
+    <script type="module" src="./meet-lifecycle.js"></script>
+  </body>
+</html>

@@ -4,10 +4,10 @@
 
 TopicDrift is a Manifest V3 Chrome extension built with WXT and React. Runtime logic is split across:
 
-- a **background service worker** for installation and typed message routing
-- a **content script** on Google Meet for isolated UI and future caption observation
+- a **background service worker** for typed message routing and session persistence
+- a **content script** on Google Meet for lifecycle detection and in-meeting UI
 - **popup** and **options** pages for status and settings
-- **pure analysis modules** and a **web worker** for local drift scoring
+- **pure analysis modules** (stubbed) and a **web worker** placeholder
 - **platform adapters** encapsulating Google Meet DOM specifics
 
 There is no backend in v1.
@@ -21,9 +21,7 @@ flowchart TB
     POP[Popup UI]
     OPT[Options UI]
     CS[Meet content script]
-    WK[Drift analysis worker]
-    ADP[Google Meet adapter]
-    ENG[Drift engine]
+    ADP[Google Meet lifecycle adapter]
     STORE[(browser.storage.local)]
   end
 
@@ -31,120 +29,93 @@ flowchart TB
 
   POP --> BG
   OPT --> BG
-  CS --> BG
   CS --> ADP
   ADP --> MEET
-  CS --> WK
-  WK --> ENG
+  CS --> BG
   BG --> STORE
-  OPT --> STORE
+  BG --> CS
 ```
 
-## Data flow (target end state)
+## Data flow (objective/session phase)
 
-1. Content script detects Meet meeting via adapter.
-2. User opts in and supplies objective in isolated UI.
-3. Adapter emits caption observations as `TranscriptSegment` objects.
-4. Segments append to a rolling window and post to analysis worker.
-5. Worker returns `DriftResult` using drift engine + state machine.
-6. Content script renders private `DriftAlert` when sustained drift occurs.
-7. Session manager coordinates lifecycle and optional summary persistence.
+1. Content script lifecycle detector emits `MeetingStateObservation` updates.
+2. Background caches per-tab runtime state and persists sessions by `meetingKey`.
+3. When stable `in-meeting` and settings allow, content script shows tracking offer.
+4. User submits objective → background creates `MeetingSession` in storage.
+5. Content script renders tracking widget (objective status only).
+6. Popup reads cached state and can forward setup/resume/control actions to the active tab.
 
-**Foundation today:** steps 1 and settings persistence are partially wired; steps 2–7 are stubs.
+**Not implemented:** caption observation, worker analysis, drift alerts.
 
 ## Entrypoint responsibilities
 
 | Entrypoint          | Responsibility                                                        |
 | ------------------- | --------------------------------------------------------------------- |
-| `background.ts`     | `onInstalled`, typed `runtime.onMessage` routing, settings read/write |
-| `content/index.tsx` | Shadow-root UI mount on Meet, future adapter/worker wiring            |
-| `popup/App.tsx`     | Product identity, page support state, options link                    |
+| `background.ts`     | Typed routing, session CRUD, tab runtime cache, popup state           |
+| `content/MeetApp`   | Lifecycle wiring, offer/objective/widget UI in shadow root            |
+| `popup/App.tsx`     | Meet/session status and manual setup controls                         |
 | `options/App.tsx`   | Local settings UI backed by storage service                           |
 
 ## Meeting adapter boundary
 
-`MeetingAdapter` (`src/adapters/meeting-adapter.ts`) defines:
+Google Meet lifecycle logic lives under `src/adapters/google-meet/`:
 
-- `detectMeeting()`
-- `startCaptionObservation(onCaption)` — must only run after user activation
-- `dispose()`
+- `meeting-key.ts` — privacy-safe room code extraction
+- `lifecycle-signals.ts` — composable DOM/URL heuristics
+- `lifecycle-detector.ts` — observer-backed state emission
 
-Google Meet implementation lives under `src/adapters/google-meet/`. DOM selectors are centralized in `selectors.ts`.
-
-## Transcript pipeline boundary
-
-Caption text becomes `TranscriptSegment` objects with normalized text. The pipeline must never log raw text in production and should avoid persisting raw segments by default.
-
-## Analysis engine boundary
-
-`src/analysis/` contains pure functions and classes:
-
-- text normalization and TF-IDF utilities
-- rolling transcript window
-- similarity scoring
-- drift state machine (sustained vs transient)
-- `analyzeDrift()` orchestrator
-
-No imports from `chrome.*`, `browser.*`, or DOM APIs are permitted here.
-
-## UI boundary
-
-React components under `src/components/` render drift alerts, objective forms, tracking widgets, and summaries inside shadow roots. Styles must not leak into Meet and Meet CSS must not break TopicDrift.
+Caption observation stubs remain in `caption-observer.ts` but are not activated.
 
 ## Storage boundary
 
-`src/services/storage.ts` persists `UserSettings` only in v1 foundation. Future session summaries and temporary session metadata must respect user settings and privacy docs.
+| Key | Contents |
+| --- | -------- |
+| `userSettings` | Options preferences |
+| `meetingSessions` | `Record<meetingKey, MeetingSession>` |
+| `offerSuppression` | Per-meeting automatic offer suppression |
+
+Session transitions are validated in `session-transitions.ts` and persisted through `session-storage.ts`.
 
 ## Chrome message-passing approach
 
-Typed discriminated unions in `src/types/messages.ts`. Handlers are registered via `createMessageRouter()` in the background. Popup/options call `browser.runtime.sendMessage` through `src/services/messaging.ts`.
-
-## Worker strategy
-
-`src/workers/drift-analysis.worker.ts` will run CPU-bound scoring off the main thread. Content script posts analysis jobs; worker returns `DriftResult` payloads.
+Typed discriminated unions in `src/types/messages.ts`. Content script publishes `MEETING_STATE_CHANGED`; background broadcasts `SESSION_STATE_CHANGED`. Popup uses `GET_POPUP_STATE` and action messages (`START_OBJECTIVE_SETUP`, `RESUME_SESSION`, etc.).
 
 ## Session lifecycle
 
-`SessionManager` tracks in-memory session state:
+```text
+landing/prejoin
+  → stable in-meeting
+  → offer (optional)
+  → objective setup
+  → active session ↔ paused
+  → stopped by user OR ended when meeting leaves in-meeting
+```
 
-`detected → offer → awaiting-objective → tracking → paused/ended`
-
-Foundation provides class scaffolding without full wiring.
-
-## Error-handling approach
-
-- Settings: normalize + fallback to defaults on read errors
-- Messaging: log at debug/warn without sensitive payloads
-- UI: explicit loading/saving/error states on options page
-- Analysis: return neutral initializing result until sufficient input exists
-
-## Future extension points
-
-| Platform        | Approach                                             |
-| --------------- | ---------------------------------------------------- |
-| Zoom            | `src/adapters/zoom/` implementing `MeetingAdapter`   |
-| Teams           | `src/adapters/teams/` implementing `MeetingAdapter`  |
-| Shared analysis | Unchanged `src/analysis/` modules                    |
-| Shared UI       | Reuse `src/components/` with platform-agnostic props |
-
-Add host permissions and ADR entries per platform; never copy Meet selectors into other modules.
-
-## Foundation diagram (implemented shell)
+## Objective/session sequence
 
 ```mermaid
 sequenceDiagram
   participant User
-  participant Popup
+  participant Content as Meet content script
   participant Background
   participant Storage
-  participant Content as Meet content script
 
-  User->>Popup: Open extension popup
-  Popup->>Background: GET_PAGE_SUPPORT_STATE
-  Background-->>Popup: PAGE_SUPPORT_STATE
-  User->>Content: Navigate to Meet
-  Content->>Background: CONTENT_SCRIPT_READY
-  User->>Popup: Open options
-  Popup->>Background: GET_SETTINGS / UPDATE_SETTINGS
-  Background->>Storage: read/write userSettings
+  Content->>Background: MEETING_STATE_CHANGED(in-meeting)
+  Content-->>User: Tracking offer (if allowed)
+  User->>Content: Set objective
+  Content->>Background: CREATE_SESSION
+  Background->>Storage: meetingSessions[meetingKey]
+  Background-->>Content: SESSION_STATE_CHANGED
+  Content-->>User: Tracking widget (objective set)
 ```
+
+## Error-handling approach
+
+- Settings/sessions: normalize + fallback on read errors
+- Actions return typed `Result` failures (`objective-required`, `session-not-found`, etc.)
+- UI shows short user-facing errors without stack traces
+- Logger redacts objective text and meeting identifiers
+
+## Future extension points
+
+Analysis worker, caption pipeline, and drift UI remain behind existing module boundaries. Zoom/Teams would add adapters without changing session storage shape.

@@ -1,28 +1,21 @@
 import type { MeetingContext } from '@/src/types/meeting';
-import { GOOGLE_MEET_SELECTORS } from './selectors';
+import { classifyMeetingPageState } from './lifecycle-detector';
 
 /**
- * Detects Google Meet meeting presence from the host page.
- *
- * TODO: Replace heuristic placeholder with reliable Meet lifecycle detection.
+ * Legacy adapter entry retained for compatibility.
+ * Prefer lifecycle detector observations for UI orchestration.
  */
 export function detectGoogleMeetMeeting(): MeetingContext | null {
-  if (!location.hostname.endsWith('meet.google.com')) {
-    return null;
-  }
+  const state = classifyMeetingPageState(location.href, document);
 
-  const hasMeetingSurface = Boolean(
-    document.querySelector(GOOGLE_MEET_SELECTORS.meetingRoot),
-  );
-
-  if (!hasMeetingSurface) {
+  if (state !== 'in-meeting' && state !== 'prejoin') {
     return null;
   }
 
   return {
     platform: 'google-meet',
     meetingUrl: location.href,
-    phase: 'detected',
+    phase: state === 'in-meeting' ? 'detected' : 'offer-tracking',
     detectedAt: Date.now(),
   };
 }

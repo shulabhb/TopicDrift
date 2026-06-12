@@ -2,21 +2,16 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { MESSAGE_TYPES } from '@/src/types/messages';
 import { sendMessage } from '@/src/services/messaging';
+import { MeetApp } from '@/src/content/MeetApp';
 import './style.css';
-
-function DevBadge() {
-  return (
-    <div className="td-dev-badge" role="status" aria-live="polite">
-      TopicDrift loaded
-    </div>
-  );
-}
 
 export default defineContentScript({
   matches: ['https://meet.google.com/*'],
   cssInjectionMode: 'ui',
 
   async main(ctx) {
+    let tabId: number | undefined;
+
     const ui = await createShadowRootUi(ctx, {
       name: 'topicdrift-meet-shell',
       position: 'overlay',
@@ -24,7 +19,7 @@ export default defineContentScript({
       append: 'last',
       onMount: (container) => {
         const root = ReactDOM.createRoot(container);
-        root.render(import.meta.env.DEV ? <DevBadge /> : null);
+        root.render(<MeetApp tabId={tabId} />);
         return root;
       },
       onRemove: (root) => {
@@ -36,7 +31,7 @@ export default defineContentScript({
 
     await sendMessage({
       type: MESSAGE_TYPES.CONTENT_SCRIPT_READY,
-      payload: { url: location.href },
+      payload: { tabId },
     });
   },
 });

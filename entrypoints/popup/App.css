@@ -59,6 +59,13 @@
   cursor: not-allowed;
 }
 
+.popup__button--enabled {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+}
+
 .popup__hint {
   margin: 8px 0 0;
   font-size: 0.8rem;

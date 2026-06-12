@@ -22,7 +22,7 @@
 
 ## Permissions review
 
-- [ ] Only `storage` and `activeTab` permissions present
+- [ ] Permissions limited to `storage` and Meet host
 - [ ] Host permission limited to `https://meet.google.com/*`
 - [ ] No new permissions without ADR + privacy doc updates
 

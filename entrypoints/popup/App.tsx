@@ -1,34 +1,83 @@
 import { useEffect, useState } from 'react';
-import { fetchPageSupportState } from '@/src/services/messaging';
-import type { PageSupportState } from '@/src/types/meeting';
+import {
+  fetchPopupState,
+  openMeetingControlsFromPopup,
+  resumeSessionFromPopup,
+  startObjectiveSetupFromPopup,
+} from '@/src/services/messaging';
+import type { PopupState } from '@/src/types/meeting';
 import './App.css';
 
-function formatSupportState(state: PageSupportState | null): string {
+function formatPopupStatus(state: PopupState | null): string {
   if (!state) {
     return 'Checking current page…';
   }
 
-  if (state.supported) {
-    return `Supported: Google Meet`;
+  switch (state.meetState) {
+    case 'not-supported':
+      return 'This page is not supported. v1 currently supports Google Meet in Chrome.';
+    case 'content-unavailable':
+      return 'Open a Google Meet tab to use TopicDrift.';
+    case 'landing':
+      return 'Google Meet home page';
+    case 'prejoin':
+      return 'Google Meet pre-join screen';
+    case 'in-meeting':
+    case 'setup-available':
+      return 'Active Google Meet call';
+    case 'session-active':
+      return 'TopicDrift session active';
+    case 'session-paused':
+      return 'TopicDrift session paused';
+    case 'session-stopped':
+      return 'TopicDrift session stopped';
+    case 'uncertain':
+      return 'Meeting state uncertain';
+    default:
+      return 'Checking current page…';
   }
-
-  if (state.reason === 'no-active-tab') {
-    return 'No active tab detected';
-  }
-
-  return 'Current page is not supported yet';
 }
 
 export default function App() {
-  const [supportState, setSupportState] = useState<PageSupportState | null>(null);
+  const [popupState, setPopupState] = useState<PopupState | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
   const version = browser.runtime.getManifest().version;
 
   useEffect(() => {
-    void fetchPageSupportState().then(setSupportState);
+    void fetchPopupState().then(setPopupState);
   }, []);
 
   const openOptions = () => {
     void browser.runtime.openOptionsPage();
+  };
+
+  const showSetObjective =
+    popupState?.meetState === 'setup-available' ||
+    popupState?.meetState === 'in-meeting';
+
+  const showResume =
+    popupState?.meetState === 'session-paused' && popupState.meetingKey;
+  const showOpenControls =
+    popupState?.meetState === 'session-active' ||
+    popupState?.meetState === 'session-paused';
+
+  const runAction = async (action: () => Promise<unknown>, success: string) => {
+    setActionMessage(null);
+    const result = await action();
+
+    if (
+      result &&
+      typeof result === 'object' &&
+      'ok' in result &&
+      (result as { ok: boolean }).ok === false
+    ) {
+      setActionMessage('Unable to complete that action on this tab.');
+      return;
+    }
+
+    setActionMessage(success);
+    const refreshed = await fetchPopupState();
+    setPopupState(refreshed);
   };
 
   return (
@@ -42,24 +91,82 @@ export default function App() {
 
       <section className="popup__section" aria-labelledby="support-status-heading">
         <h2 id="support-status-heading" className="popup__section-title">
-          Page support
+          Current tab
         </h2>
         <p className="popup__status" role="status">
-          {formatSupportState(supportState)}
+          {formatPopupStatus(popupState)}
         </p>
+        {popupState?.objective ? (
+          <p className="popup__hint">Objective saved for this meeting.</p>
+        ) : null}
       </section>
 
       <section className="popup__section" aria-labelledby="tracking-heading">
         <h2 id="tracking-heading" className="popup__section-title">
           Tracking
         </h2>
-        <button type="button" className="popup__button" disabled aria-disabled="true">
-          Start tracking (not implemented)
-        </button>
-        <p className="popup__hint">
-          Meeting analysis has not started. Future versions will ask for your consent
-          before reading captions.
-        </p>
+
+        {showSetObjective ? (
+          <button
+            type="button"
+            className="popup__button popup__button--enabled"
+            onClick={() =>
+              void runAction(
+                startObjectiveSetupFromPopup,
+                'Objective setup opened in Meet.',
+              )
+            }
+          >
+            Set meeting objective
+          </button>
+        ) : null}
+
+        {showResume && popupState.meetingKey ? (
+          <button
+            type="button"
+            className="popup__button popup__button--enabled"
+            onClick={() =>
+              void runAction(
+                () => resumeSessionFromPopup(popupState.meetingKey!),
+                'Session resumed.',
+              )
+            }
+          >
+            Resume tracking
+          </button>
+        ) : null}
+
+        {showOpenControls ? (
+          <button
+            type="button"
+            className="popup__button popup__button--enabled"
+            onClick={() =>
+              void runAction(
+                openMeetingControlsFromPopup,
+                'Meeting controls opened in Meet.',
+              )
+            }
+          >
+            Open meeting controls
+          </button>
+        ) : null}
+
+        {!showSetObjective && !showResume && !showOpenControls ? (
+          <p className="popup__hint">
+            Conversation analysis is not active yet. Join a Google Meet call to set an
+            objective.
+          </p>
+        ) : (
+          <p className="popup__hint">
+            TopicDrift stores your objective locally. Caption analysis has not started.
+          </p>
+        )}
+
+        {actionMessage ? (
+          <p className="popup__status" role="status" aria-live="polite">
+            {actionMessage}
+          </p>
+        ) : null}
       </section>
 
       <footer className="popup__footer">

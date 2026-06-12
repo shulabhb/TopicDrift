@@ -4,7 +4,6 @@ import {
   type ExtensionResponse,
   isExtensionMessage,
 } from '@/src/types/messages';
-import { getPageSupportState } from '@/src/types/meeting';
 import { getUserSettings, updateUserSettings } from '@/src/services/storage';
 import { logger } from '@/src/utils/logger';
 
@@ -19,25 +18,28 @@ export async function sendMessage<T extends ExtensionResponse>(
   }
 }
 
-export async function getActiveTabUrl(): Promise<string | undefined> {
+export async function getActiveTabId(): Promise<number | undefined> {
   const tabs = await browser.tabs.query({ active: true, currentWindow: true });
-  return tabs[0]?.url;
+  return tabs[0]?.id;
 }
 
-export async function fetchPageSupportState() {
-  const url = await getActiveTabUrl();
-  return getPageSupportState(url);
-}
-
-export async function fetchSettings() {
-  const response = await sendMessage({
-    type: MESSAGE_TYPES.GET_SETTINGS,
-  });
-
-  if (response?.type === MESSAGE_TYPES.SETTINGS) {
+export async function fetchPopupState() {
+  const response = await sendMessage({ type: MESSAGE_TYPES.GET_POPUP_STATE });
+  if (response?.type === MESSAGE_TYPES.POPUP_STATE) {
     return response.payload;
   }
 
+  return {
+    meetState: 'content-unavailable' as const,
+    contentScriptReady: false,
+  };
+}
+
+export async function fetchSettings() {
+  const response = await sendMessage({ type: MESSAGE_TYPES.GET_SETTINGS });
+  if (response?.type === MESSAGE_TYPES.SETTINGS) {
+    return response.payload;
+  }
   return getUserSettings();
 }
 
@@ -61,21 +63,33 @@ export async function persistSettings(
   return result.value;
 }
 
+export async function startObjectiveSetupFromPopup() {
+  const response = await sendMessage({ type: MESSAGE_TYPES.START_OBJECTIVE_SETUP });
+  return response?.type === MESSAGE_TYPES.ACTION_RESULT ? response.payload : undefined;
+}
+
+export async function openMeetingControlsFromPopup() {
+  const response = await sendMessage({ type: MESSAGE_TYPES.OPEN_MEETING_CONTROLS });
+  return response?.type === MESSAGE_TYPES.ACTION_RESULT ? response.payload : undefined;
+}
+
+export async function resumeSessionFromPopup(meetingKey: string) {
+  const response = await sendMessage({
+    type: MESSAGE_TYPES.RESUME_SESSION,
+    payload: { meetingKey },
+  });
+  return response?.type === MESSAGE_TYPES.ACTION_RESULT ? response.payload : undefined;
+}
+
 export type MessageHandler = (
   message: ExtensionMessage,
   sender: Browser.runtime.MessageSender,
 ) => Promise<ExtensionResponse | undefined> | ExtensionResponse | undefined;
 
-export function createMessageRouter(handlers: Partial<Record<string, MessageHandler>>) {
+export function createMessageRouter(handler: MessageHandler) {
   browser.runtime.onMessage.addListener((rawMessage, sender, sendResponse) => {
     if (!isExtensionMessage(rawMessage)) {
       logger.warn('Ignoring invalid extension message');
-      return false;
-    }
-
-    const handler = handlers[rawMessage.type];
-
-    if (!handler) {
       return false;
     }
 
@@ -91,4 +105,34 @@ export function createMessageRouter(handlers: Partial<Record<string, MessageHand
 
     return true;
   });
+}
+
+export function onExtensionMessage(handler: MessageHandler): () => void {
+  const listener = (
+    rawMessage: unknown,
+    sender: Browser.runtime.MessageSender,
+    sendResponse: (response?: unknown) => void,
+  ) => {
+    if (!isExtensionMessage(rawMessage)) {
+      return false;
+    }
+
+    Promise.resolve(handler(rawMessage, sender))
+      .then((response) => {
+        if (response) {
+          sendResponse(response);
+        }
+      })
+      .catch((error) => {
+        logger.error('Content message handler failed', {
+          type: rawMessage.type,
+          error,
+        });
+      });
+
+    return true;
+  };
+
+  browser.runtime.onMessage.addListener(listener);
+  return () => browser.runtime.onMessage.removeListener(listener);
 }
