@@ -1,0 +1,13 @@
+---
+description: Chrome extension layering and adapter boundaries
+globs: "{entrypoints/**,src/adapters/**,src/services/**}"
+alwaysApply: false
+---
+
+# Chrome extension architecture
+
+- Manifest V3; minimal permissions only.
+- Google Meet selectors stay in `src/adapters/google-meet/selectors.ts`.
+- Analysis code must not import Chrome APIs or DOM helpers.
+- Content script UI uses isolated shadow roots.
+- Background worker routes typed messages only; no transcript logic yet.

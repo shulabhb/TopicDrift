@@ -1,0 +1,12 @@
+---
+description: Testing expectations and completion criteria
+globs: "{tests/**,**/*.test.ts,**/*.test.tsx,**/*.spec.ts}"
+alwaysApply: false
+---
+
+# Testing and completion
+
+- Add meaningful tests for behavior you implement; avoid trivial constant assertions.
+- Prefer unit tests for pure logic; component tests for popup/options; Playwright for manifest/build smoke checks.
+- `npm run check` must pass: format, lint, typecheck, unit tests, production build.
+- E2E may depend on `.output/` from `npm run build`.

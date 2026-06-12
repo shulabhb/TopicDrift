@@ -1,0 +1,13 @@
+---
+description: Privacy and security invariants for meeting data
+alwaysApply: true
+---
+
+# Privacy and security
+
+- Process meeting text locally; no backend or cloud AI in v1.
+- Never log transcript, caption, or objective content in production.
+- Never send meeting content over the network.
+- Do not persist raw transcripts by default.
+- New Chrome permissions require docs updates with justification.
+- No remote scripts, analytics, or API keys.

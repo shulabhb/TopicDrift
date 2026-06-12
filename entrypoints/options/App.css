@@ -1,0 +1,45 @@
+.options {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px;
+  color: #0f172a;
+}
+
+.options__header h1 {
+  margin: 0 0 8px;
+  font-size: 1.5rem;
+}
+
+.options__header p {
+  margin: 0 0 24px;
+  color: #475569;
+}
+
+.options__form {
+  display: grid;
+  gap: 16px;
+}
+
+.options__field {
+  display: grid;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.options__field input[type='checkbox'] {
+  width: auto;
+  margin-right: 8px;
+}
+
+.options__field select {
+  max-width: 240px;
+  padding: 6px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+}
+
+.options__status {
+  margin-top: 20px;
+  font-size: 0.875rem;
+  color: #64748b;
+}

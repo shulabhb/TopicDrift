@@ -1,0 +1,13 @@
+---
+description: Core engineering standards for TopicDrift
+alwaysApply: true
+---
+
+# General engineering
+
+- Read `AGENTS.md` and relevant `docs/` before editing.
+- Keep diffs small, typed, and test-backed.
+- Do not claim unimplemented features in UI or docs.
+- Placeholders need a clear TODO and intended responsibility.
+- Run `npm run check` before finishing substantive work.
+- Update `docs/decisions.md` and `CHANGELOG.md` when decisions or user-visible behavior change.
