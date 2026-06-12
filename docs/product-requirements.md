@@ -29,20 +29,20 @@ A user joins a Google Meet with live captions enabled, sets a meeting objective,
 
 ## Functional requirements
 
-| ID    | Requirement                                             | Foundation status                    |
-| ----- | ------------------------------------------------------- | ------------------------------------ |
-| FR-1  | Detect supported meeting pages (Google Meet)            | Implemented — lifecycle states |
-| FR-2  | Offer tracking after detection                          | Implemented                    |
-| FR-3  | Capture meeting objective with user consent             | Implemented                    |
-| FR-4  | Read live captions after explicit activation            | Not implemented                      |
-| FR-5  | Analyze transcript locally                              | Stub only                            |
-| FR-6  | Detect sustained drift vs isolated tangents             | Stub only                            |
-| FR-7  | Show private drift warnings                             | Not implemented                      |
+| ID    | Requirement                                             | Foundation status                               |
+| ----- | ------------------------------------------------------- | ----------------------------------------------- |
+| FR-1  | Detect supported meeting pages (Google Meet)            | Implemented — lifecycle states                  |
+| FR-2  | Offer tracking after detection                          | Implemented                                     |
+| FR-3  | Capture meeting objective with user consent             | Implemented                                     |
+| FR-4  | Read live captions after explicit activation            | Not implemented                                 |
+| FR-5  | Analyze transcript locally                              | Stub only                                       |
+| FR-6  | Detect sustained drift vs isolated tangents             | Stub only                                       |
+| FR-7  | Show private drift warnings                             | Not implemented                                 |
 | FR-8  | Allow dismiss / detour / objective update / pause       | Partial — pause/edit/stop; no drift detours yet |
-| FR-9  | Optional local post-meeting summary                     | Not implemented                      |
-| FR-10 | Persist user settings locally                           | Implemented                          |
-| FR-11 | Popup shows support state without false analysis claims | Implemented                          |
-| FR-12 | Options page for privacy-relevant preferences           | Implemented                          |
+| FR-9  | Optional local post-meeting summary                     | Not implemented                                 |
+| FR-10 | Persist user settings locally                           | Implemented                                     |
+| FR-11 | Popup shows support state without false analysis claims | Implemented                                     |
+| FR-12 | Options page for privacy-relevant preferences           | Implemented                                     |
 
 ## Non-functional requirements
 

@@ -93,16 +93,16 @@ Use `src/utils/logger.ts`:
 
 ## Chrome permission rationale
 
-| Permission                         | Why needed                                                       |
-| ---------------------------------- | ---------------------------------------------------------------- |
-| `storage`                          | Persist settings, sessions, and offer suppression locally        |
-| `https://meet.google.com/*` (host) | Inject isolated content script on Google Meet pages              |
+| Permission                         | Why needed                                                |
+| ---------------------------------- | --------------------------------------------------------- |
+| `storage`                          | Persist settings, sessions, and offer suppression locally |
+| `https://meet.google.com/*` (host) | Inject isolated content script on Google Meet pages       |
 
 ### Removed permission
 
-| Permission   | Why removed                                                                 |
-| ------------ | --------------------------------------------------------------------------- |
-| `activeTab`  | Popup state now comes from content-script lifecycle cache via background messaging; host permission covers Meet tabs |
+| Permission  | Why removed                                                                                                          |
+| ----------- | -------------------------------------------------------------------------------------------------------------------- |
+| `activeTab` | Popup state now comes from content-script lifecycle cache via background messaging; host permission covers Meet tabs |
 
 ### Explicitly not requested (v1)
 
@@ -114,13 +114,13 @@ Use `src/utils/logger.ts`:
 
 ## Threat considerations
 
-| Threat                       | Mitigation                                          |
-| ---------------------------- | --------------------------------------------------- |
-| Accidental data exfiltration | No network code paths for meeting payloads          |
-| Overbroad permissions        | Manifest limited to `storage` + Meet host             |
-| Host CSS/script interference | Shadow DOM isolation                                |
-| Sensitive logs               | Logger redaction and production debug suppression   |
-| Misleading UX                | Widget states objective only; no analysis claims    |
+| Threat                       | Mitigation                                        |
+| ---------------------------- | ------------------------------------------------- |
+| Accidental data exfiltration | No network code paths for meeting payloads        |
+| Overbroad permissions        | Manifest limited to `storage` + Meet host         |
+| Host CSS/script interference | Shadow DOM isolation                              |
+| Sensitive logs               | Logger redaction and production debug suppression |
+| Misleading UX                | Widget states objective only; no analysis claims  |
 
 ## Privacy acceptance checklist
 

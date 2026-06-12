@@ -49,12 +49,12 @@ flowchart TB
 
 ## Entrypoint responsibilities
 
-| Entrypoint          | Responsibility                                                        |
-| ------------------- | --------------------------------------------------------------------- |
-| `background.ts`     | Typed routing, session CRUD, tab runtime cache, popup state           |
-| `content/MeetApp`   | Lifecycle wiring, offer/objective/widget UI in shadow root            |
-| `popup/App.tsx`     | Meet/session status and manual setup controls                         |
-| `options/App.tsx`   | Local settings UI backed by storage service                           |
+| Entrypoint        | Responsibility                                              |
+| ----------------- | ----------------------------------------------------------- |
+| `background.ts`   | Typed routing, session CRUD, tab runtime cache, popup state |
+| `content/MeetApp` | Lifecycle wiring, offer/objective/widget UI in shadow root  |
+| `popup/App.tsx`   | Meet/session status and manual setup controls               |
+| `options/App.tsx` | Local settings UI backed by storage service                 |
 
 ## Meeting adapter boundary
 
@@ -68,10 +68,10 @@ Caption observation stubs remain in `caption-observer.ts` but are not activated.
 
 ## Storage boundary
 
-| Key | Contents |
-| --- | -------- |
-| `userSettings` | Options preferences |
-| `meetingSessions` | `Record<meetingKey, MeetingSession>` |
+| Key                | Contents                                |
+| ------------------ | --------------------------------------- |
+| `userSettings`     | Options preferences                     |
+| `meetingSessions`  | `Record<meetingKey, MeetingSession>`    |
 | `offerSuppression` | Per-meeting automatic offer suppression |
 
 Session transitions are validated in `session-transitions.ts` and persisted through `session-storage.ts`.
